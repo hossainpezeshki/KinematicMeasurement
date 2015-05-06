@@ -41,33 +41,18 @@ Accordingly, inferring the change in position and in orientation are my aims in 
 
 ```r
 gdat <- read.csv (file="data.csv")
-```
-
-```
-## Warning in file(file, "rt"): cannot open file 'data.csv': No such file or
-## directory
-```
-
-```
-## Error in file(file, "rt"): cannot open the connection
-```
-
-```r
 colnames (gdat)
 ```
 
 ```
-## Error in is.data.frame(x): object 'gdat' not found
+## [1] "X"        "time"     "accel.x"  "accel.y"  "accel.z"  "rotvel.x"
+## [7] "rotvel.y" "rotvel.z"
 ```
 
 The first column appears to be just the sample number, so I remove it.
 
 ```r
 gdat <- gdat[,2:8]
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'gdat' not found
 ```
 
 # Inferring the position of the centre of mass #
@@ -85,37 +70,14 @@ in the position and plots it.
 
 ```r
 acceleration <- as.matrix (gdat[, c(2:4)])
-```
-
-```
-## Error in as.matrix(gdat[, c(2:4)]): object 'gdat' not found
-```
-
-```r
 velocity <- cumtrapz (gdat$time, acceleration)  # Trapezoidal rule approximation of the integrals.
-```
-
-```
-## Error in cumtrapz(gdat$time, acceleration): object 'gdat' not found
-```
-
-```r
 position <- cumtrapz (gdat$time, velocity)
-```
-
-```
-## Error in cumtrapz(gdat$time, velocity): object 'gdat' not found
-```
-
-```r
 scatterplot3d (position[,1], position[,2], position[,3],
 				highlight.3d=TRUE, pch=20, cex.symbols=0.15,
 				xlab="x axis", ylab="y axis", zlab="z axis")
 ```
 
-```
-## Error in scatterplot3d(position[, 1], position[, 2], position[, 3], highlight.3d = TRUE, : object 'position' not found
-```
+![plot of chunk unnamed-chunk-4](figure/unnamed-chunk-4-1.png) 
 
 # Inferring the change in orientation #
 In this section I am using the online kinematics tutorial
@@ -184,73 +146,20 @@ The implementation is given below:
 
 ```r
 omega <- as.matrix (gdat[,5:7])   # Get the rotational velocities
-```
-
-```
-## Error in as.matrix(gdat[, 5:7]): object 'gdat' not found
-```
-
-```r
 h <- mean (diff (gdat$time, lag=1)) # The samples are evenly spaced but for tiny variations.
-```
-
-```
-## Error in diff(gdat$time, lag = 1): object 'gdat' not found
-```
-
-```r
 Nobs <- dim (omega)[1]			# The original number of observations
-```
 
-```
-## Error in eval(expr, envir, enclos): object 'omega' not found
-```
-
-```r
 p = 10; q=1;  	# omega signal will be interpolated at the rate of p/q
 upsomega <- sapply (1:3, function (i) {resample (omega[,i], p, q)})  # upsampled omega
-```
 
-```
-## Error in seq.default(1, length(x) + 1 - 1/r, by = 1/r): object 'omega' not found
-```
-
-```r
 dt = (h * q) / p;  # Delta t is shrunk by q/p
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'h' not found
-```
-
-```r
 Nup = dim (upsomega)[1]			# The new number of samples
-```
 
-```
-## Error in eval(expr, envir, enclos): object 'upsomega' not found
-```
-
-```r
 Dt <- list ()
 Dt[[1]] <- eye(3)
 
 uptime = vector ("numeric", length = Nup)  # This is the new discrete time axis
-```
-
-```
-## Error in vector("numeric", length = Nup): object 'Nup' not found
-```
-
-```r
 uptime[1] = dt;
-```
-
-```
-## Error in uptime[1] = dt: object 'uptime' not found
-```
-
-```r
 for (k in 2:Nup) {
   W = toW (upsomega[k,])
   
@@ -262,61 +171,22 @@ for (k in 2:Nup) {
 }
 ```
 
-```
-## Error in eval(expr, envir, enclos): object 'Nup' not found
-```
-
 We can now inspect the results by following the action of $D(t)$ on $u(0) = [1,0,0]^\top$.
 
 ```r
 u <- matrix (rep (0.0, 3*Nup), ncol=3)
-```
-
-```
-## Error in matrix(rep(0, 3 * Nup), ncol = 3): object 'Nup' not found
-```
-
-```r
 u[1,] <- c(1,0,0)
-```
 
-```
-## Error in u[1, ] <- c(1, 0, 0): object 'u' not found
-```
-
-```r
 for (k in 2:Nup) {
   u[k,] <- Dt[[k]] %*% u[1,]
 }
-```
 
-```
-## Error in eval(expr, envir, enclos): object 'Nup' not found
-```
-
-```r
 lengths <- sapply (1:dim(u)[1], function (i) {sqrt(t(u[i,]) %*% u[i,])})
-```
-
-```
-## Error in lapply(X = X, FUN = FUN, ...): object 'u' not found
-```
-
-```r
 u = u / lengths;
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'u' not found
-```
-
-```r
 scatterplot3d (u[,1], u[,2], u[,3], highlight.3d=TRUE, pch=20, cex.symbols=0.1)
 ```
 
-```
-## Error in scatterplot3d(u[, 1], u[, 2], u[, 3], highlight.3d = TRUE, pch = 20, : object 'u' not found
-```
+![plot of chunk unnamed-chunk-7](figure/unnamed-chunk-7-1.png) 
 
 Apart from the mass of uniformly distributed noise, one can clearly discern the red curve in the plot,
 indicating that the above procedure has been able to infer the orientation at least for some of
